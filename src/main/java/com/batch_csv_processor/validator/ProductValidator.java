@@ -1,6 +1,7 @@
 package com.batch_csv_processor.validator;
 
 import com.batch_csv_processor.dto.ProductCsv;
+import com.batch_csv_processor.exception.InvalidDiscountException;
 import com.batch_csv_processor.exception.InvalidPriceException;
 import com.batch_csv_processor.exception.InvalidProductException;
 import com.batch_csv_processor.exception.InvalidQuantityException;
@@ -14,34 +15,34 @@ import java.math.BigDecimal;
 public class ProductValidator {
 
     public void validate(ProductCsv csv) {
-
         validateId(csv);
-
         validateName(csv);
-
         validatePrice(csv);
-
         validateQuantity(csv);
-
         validateDiscount(csv);
     }
 
     private void validateDiscount(ProductCsv csv) {
+        if (csv.getDiscount() == null) {
+            throw new InvalidDiscountException("Discount cannot be null");
+        }
 
-        if (csv.getDiscount() == null || csv.getDiscount().isBlank()) {
-
-            log.error("Discount can not be null or blank");
-
-            throw new InvalidProductException("Discount can not be null or blank");
+        try {
+            BigDecimal discount = new BigDecimal(csv.getDiscount().replace("%", "").trim());
+            if (discount.compareTo(BigDecimal.ZERO) < 0) {
+                throw new InvalidDiscountException("Discount cannot be negative");
+            }
+            if (discount.compareTo(new BigDecimal("100")) > 0) {
+                throw new InvalidDiscountException("Discount cannot be greater than 100");
+            }
+        } catch (NumberFormatException ex) {
+            throw new InvalidDiscountException("Discount is not numeric");
         }
     }
 
     private void validateName(ProductCsv csv) {
-
         if (csv.getName() == null || csv.getName().isBlank()) {
-
             log.error("Invalid Product Name : {}", csv.getId());
-
             throw new InvalidProductException("Product Name cannot be empty");
         }
     }
