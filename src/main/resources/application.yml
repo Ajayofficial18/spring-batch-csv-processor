@@ -1,1 +1,34 @@
-spring.application.name=spring-batch-csv-processor
+spring:
+  application:
+    name: product-batch-processing
+
+  profiles:
+    active: local
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: false
+
+app:
+  upload:
+    directory: uploads
+
+logging:
+  level:
+    root: INFO
+    org.springframework.batch: INFO
+    com.ajay.batch: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,env,beans,loggers
