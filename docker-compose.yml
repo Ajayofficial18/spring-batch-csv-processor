@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+
+  mysql:
+    image: mysql:8.4
+    container_name: csv_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: csvbatchprocessor
+    ports:
+      - "3307:3306"
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+    healthcheck:
+      test: ["CMD","mysqladmin","ping","-h","localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  batch-app:
+    build: .
+    container_name: spring_batch_app
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+      DB_HOST: mysql
+      DB_NAME: csvbatchprocessor
+      DB_USERNAME: root
+      DB_PASSWORD: root
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+
+    volumes:
+      - ./uploads:/app/uploads
+
+volumes:
+  mysql_data:
